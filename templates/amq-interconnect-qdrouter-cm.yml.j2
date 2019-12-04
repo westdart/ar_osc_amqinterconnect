@@ -1,0 +1,25 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: amq-interconnect-qdrouter-cm
+metadata:
+  annotations:
+    description: Config Map containing QPid Router configuration
+    iconClass: icon-amq
+    openshift.io/display-name: QDRouter Config Map
+  labels:
+    app: {{ ar_osc_amqinterconnect_common_name }}
+  name: {{ ar_osc_amqinterconnect_common_name }}-config-map
+objects:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: {{ ar_osc_amqinterconnect_common_name }}-config-map
+    namespace: {{ ar_osc_amqinterconnect_namespace }}
+    labels:
+      app: {{ ar_osc_amqinterconnect_common_name }}
+  data:
+    qdrouterd.conf: |-
+{% for line in QD_ROUTER_CONFIG.split('\n') %}
+      {{ line }}
+{% endfor %}

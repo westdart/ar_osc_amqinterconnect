@@ -1,0 +1,122 @@
+router {
+    mode: interior
+    id: ${HOSTNAME}
+}
+listener {
+    host: 0.0.0.0
+    port: 55672
+    role: inter-router
+    authenticatePeer: no
+    saslMechanisms: ANONYMOUS
+}
+sslProfile {
+    name: service_tls
+    certFile: {{ ar_osc_amqinterconnect_cert_mountpoint }}/tls.crt
+    privateKeyFile: {{ ar_osc_amqinterconnect_cert_mountpoint }}/tls.key
+    certDb: {{ ar_osc_amqinterconnect_cert_mountpoint }}/ca.crt
+}
+sslProfile {
+    name: client_tls
+    certDb: {{ ar_osc_amqinterconnect_cert_mountpoint }}/ca.crt
+}
+
+listener {
+    host: 0.0.0.0
+    port: amqps
+{% if 'role' in ar_osc_amqinterconnect_instance %}
+    role: {{ ar_osc_amqinterconnect_instance.role }}
+{% endif %}
+    authenticatePeer: no
+    saslMechanisms: ANONYMOUS PLAIN
+    sslProfile: service_tls
+}
+listener {
+    host: 0.0.0.0
+    port: 8672
+    authenticatePeer: no
+    saslMechanisms: ANONYMOUS
+    sslProfile: service_tls
+    http: true
+    httpRootDir: /usr/share/qpid-dispatch/console
+}
+
+{% if ar_osc_amqinterconnect_instance.incomingAddressList | length > 0 %}
+
+# <Config connectors, addresses and autoLinks for AMQ Interconnect and Broker pair>
+
+## Connector to local Broker
+connector {
+    name: LocalAMQBroker
+    host: {{ ar_osc_amqinterconnect_instance | internal_broker_host(deployment_phase) }}
+    port: 5672
+    role: route-container
+    saslUsername: {{ ar_osc_amqinterconnect_broker_username }}
+    saslPassword: {{ ar_osc_amqinterconnect_broker_password }}
+    saslMechanisms: PLAIN
+}
+
+## Connector to Routing Mesh
+{% set mesh_app_name_query = "[?name=='" + mesh_name + "'].ic_application_name" %}
+connector {
+    name: MJDIMeshRoutingTier
+    host: {{ ar_osc_amqinterconnect_instance.meshIRAddr }}
+    port: {{ ar_osc_amqinterconnect_instance.meshPort | default('443') }}
+    role: inter-router
+    saslUsername: {{ ar_osc_amqinterconnect_ic_username }}@{{ ar_osc_amqinterconnect_instances | json_query(mesh_app_name_query) | first }}
+    saslPassword: {{ ar_osc_amqinterconnect_ic_password }}
+    saslMechanisms: PLAIN
+{% if 'meshPort' not in ar_osc_amqinterconnect_instance %}
+    sslProfile: client_tls
+{% endif %}
+}
+
+{% for pattern in ar_osc_amqinterconnect_instance.wayPointPatterns %}
+address {
+    prefix: {{ pattern }}
+    waypoint: yes
+}
+{% endfor %}
+
+# autoLinks pulls messages from the broker into the Router and onto consumers
+{% set query = "[?name!=`" + ar_osc_amqinterconnect_instance.name + "`].incomingAddressList " %}
+{% for addr in ar_osc_amqinterconnect_instances | json_query(query) | flatten %}
+autoLink {
+    addr: {{ addr }}
+    connection: LocalAMQBroker
+    direction: in
+    phase: 0
+}
+{% endfor %}
+{% for addr in ar_osc_amqinterconnect_instance.incomingAddressList %}
+# Direct messages from producers to the Broker on this address prefix
+autoLink {
+    addr: {{ addr }}
+    connection: LocalAMQBroker
+    direction: out
+    phase: 0
+}
+{% endfor %}#
+
+# </Config connectors, addresses and autoLinks for AMQ Interconnect and Broker pair>
+
+{% else %}
+
+# <Config connectors, addresses and autoLinks for AMQ Interconnect mesh>
+
+{% for pattern in ar_osc_amqinterconnect_instance.wayPointPatterns %}
+address {
+    prefix: {{ pattern }}
+    waypoint: yes
+    distribution : multicast
+}
+{% endfor %}
+
+# </Config connectors, addresses and autoLinks for AMQ Interconnect mesh>
+
+{% endif %}
+
+log {
+    module: DEFAULT
+    enable: info+
+    includeTimestamp: yes
+}

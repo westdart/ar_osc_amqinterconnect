@@ -1,0 +1,198 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: amq-interconnect-1-basic
+  xpaas: 1.4.10
+  appgroup: ${APP_GROUP}
+message: A new messaging service has been created in your project.
+metadata:
+  annotations:
+    description: Application template for Red Hat AMQ Interconnect Router.
+    iconClass: icon-amq
+    openshift.io/display-name: Red Hat AMQ Interconnect Router 1.x
+    openshift.io/provider-display-name: Red Hat, Inc.
+    tags: messaging,amq
+    version: 1.4.10
+  name: amq-interconnect-basic
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: The router's AMQP port.
+      service.alpha.openshift.io/serving-cert-secret-name: ${APPLICATION_NAME}-cert
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    ports:
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+    - name: amqps
+      port: 5671
+      targetPort: 5671
+    - name: http
+      port: 8672
+      targetPort: 8672
+    - name: inter-router
+      port: 55672
+      targetPort: 55672
+    selector:
+      deploymentConfig: ${APPLICATION_NAME}
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}-console
+  spec:
+    port:
+      targetPort: 8672
+    to:
+      kind: Service
+      name: ${APPLICATION_NAME}
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    port:
+      targetPort: 5671
+    tls:
+      termination: passthrough
+    to:
+      kind: Service
+      name: ${APPLICATION_NAME}
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    replicas: 1
+    selector:
+      deploymentConfig: ${APPLICATION_NAME}
+    strategy:
+      rollingParams:
+        maxSurge: 0
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          application: ${APPLICATION_NAME}
+          deploymentConfig: ${APPLICATION_NAME}
+        name: ${APPLICATION_NAME}
+      spec:
+{% if 'hostAliases' in ar_osc_amqinterconnect_instance %}
+        hostAliases:
+{% for hostAlias in ar_osc_amqinterconnect_instance.hostAliases %}
+        - ip: "{{ hostAlias.ip }}"
+          hostnames:
+{% for hostname in hostAlias.hostnames %}
+          - "{{ hostname }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+        containers:
+        - env:
+          - name: APPLICATION_NAME
+            value: ${APPLICATION_NAME}
+          - name: QDROUTERD_CONF
+            value: /etc/qpid-dispatch/qdrouterd.conf
+          - name: QDROUTERD_AUTO_MESH_DISCOVERY
+            value: QUERY
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - image: ${IMAGE_NAME}
+            name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8672
+          name: ${APPLICATION_NAME}
+          ports:
+          - containerPort: 5672
+            name: amqp
+            protocol: TCP
+          - containerPort: 5671
+            name: amqps
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 55672
+            name: inter
+            protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8672
+          terminationGracePeriodSeconds: 60
+          volumeMounts:
+          - mountPath: /etc/qpid-dispatch-certs/
+            name: certs
+            readOnly: true
+          - mountPath: /etc/qpid-dispatch/
+            name: config-volume
+        imagePullPolicy: Always
+        terminationGracePeriodSeconds: 60
+        volumes:
+        - name: certs
+          secret:
+            secretName: ${CERT_SECRET_NAME}
+        - name: config-volume
+          configMap:
+            name: ${QDROUTERD_CONF_NAME}
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${APPLICATION_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${IMAGE_NAME}
+          namespace: ${IMAGE_STREAM_NAMESPACE}
+      type: ImageChange
+    - type: ConfigChange
+parameters:
+- description: The name of the application.
+  displayName: Application Name
+  name: APPLICATION_NAME
+  required: true
+  value: amq-interconnect
+- description: The namespace in which the image streams for Red Hat Middleware images
+    are installed. These image streams are normally installed in the openshift namespace.
+    You should only need to modify this if you installed the image streams in a different
+    namespace/project.
+  displayName: Image Stream Namespace
+  name: IMAGE_STREAM_NAMESPACE
+  value: openshift
+- description: The name of the AMQ Interconnect image to use. This can usually be
+    left as the default value
+  displayName: Image Name
+  name: IMAGE_NAME
+  value: amq-interconnect:latest
+- description: QPID Dispatch Router Config Map
+  displayName: QDRouter Config Map
+  name: QDROUTERD_CONF_NAME
+  required: true
+- description: TLS Certificate Files
+  displayName: TLS Certificates
+  name: CERT_SECRET_NAME
+  required: true
+- description: Application Group Name
+  displayName: Application Group Name
+  name: APP_GROUP
+  required: true

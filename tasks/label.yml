@@ -1,0 +1,12 @@
+---
+- name: Label Interconnect Objects
+  include_role:
+    name: roles/casl-ansible/roles/openshift-labels
+  vars:
+    label:            "appgroup={{ ar_osc_amqinterconnect_name }}"
+    target_object:    "{{ ar_osc_amqinterconnect_label.object }}"
+    target_name:      "{{ ar_osc_amqinterconnect_label.name }}"
+    target_namespace: "{{ ar_osc_amqinterconnect_instance | app_namespace(deployment_phase) }}"
+  with_items:         "{{ ar_osc_amqinterconnect_labels }}"
+  loop_control:
+    loop_var: ar_osc_amqinterconnect_label

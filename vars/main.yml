@@ -1,0 +1,11 @@
+---
+ar_osc_amqinterconnect_ns: None
+ar_osc_amqinterconnect_name: None
+ar_osc_amqinterconnect_instance: None
+ar_osc_amqinterconnect_ca_cert: None
+ar_osc_amqinterconnect_ic_username: None
+ar_osc_amqinterconnect_ic_password: None
+ar_osc_amqinterconnect_domain: None
+ar_osc_amqinterconnect_broker_username: None
+ar_osc_amqinterconnect_broker_password: None
+ar_osc_amqinterconnect_tls_key: None
