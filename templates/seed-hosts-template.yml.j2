@@ -2,30 +2,30 @@
 openshift_cluster_content:
 - object: Projects
   content:
-  - name: {{ ar_osc_amqbroker_name }} Project
-    template: "{{ _ar_osc_amqbroker_config_dest_templates }}/project-template.yml"
+  - name: {{ ar_osc_amqinterconnect_name }} Project
+    template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/project-template.yml"
     action: create
     params_from_vars:
-      NAMESPACE: "{{ ar_osc_amqbroker_ns }}"
-      NAMESPACE_DISPLAY_NAME: "{{ ar_osc_amqbroker_ns | upper }}"
+      NAMESPACE: "{{ ar_osc_amqinterconnect_ns }}"
+      NAMESPACE_DISPLAY_NAME: "{{ ar_osc_amqinterconnect_ns | upper }}"
     tags:
     - projects
     - aspera
     - amqbroker
     - amqic
 
-{% if ar_osc_amqbroker_instance.serviceaccounts is defined %}
-{% set serviceaccounts = ar_osc_amqbroker_instance.serviceaccounts | merge_list_of_dicts({'namespace': ar_osc_amqbroker_ns}) %}
+{% if ar_osc_amqinterconnect_instance.serviceaccounts is defined %}
+{% set serviceaccounts = ar_osc_amqinterconnect_instance.serviceaccounts | merge_list_of_dicts({'namespace': ar_osc_amqinterconnect_ns}) %}
 - object: Service Accounts for {{ deployment_phase | upper }}
   content:
-{% for serviceaccount in ar_osc_amqbroker_instance.serviceaccounts %}
+{% for serviceaccount in ar_osc_amqinterconnect_instance.serviceaccounts %}
   - name: {{ serviceaccount.name }}-serviceaccount
-    namespace: "{{ ar_osc_amqbroker_ns }}"
-    template: "{{ _ar_osc_amqbroker_config_dest_templates }}/serviceaccount-template.yml"
+    namespace: "{{ ar_osc_amqinterconnect_ns }}"
+    template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/serviceaccount-template.yml"
     action: apply
     params_from_vars:
       SA_NAME: {{ serviceaccount.name }}
-      SA_NAMESPACE: {{ ar_osc_amqbroker_ns }}
+      SA_NAMESPACE: {{ ar_osc_amqinterconnect_ns }}
     tags:
     - projects
     - serviceaccounts
@@ -42,66 +42,57 @@ openshift_cluster_content:
 
 - object: Deployments {{ deployment_phase | upper }}
   content:
-{% if ar_osc_amqbroker_instance.incomingAddressList | length > 0 %}
-# Secret for {{ ar_osc_amqbroker_name }} broker
-  - name: {{ ar_osc_amqbroker_name }}-broker-secrets
-    namespace: "{{ ar_osc_amqbroker_ns }}"
-    template: "{{ _ar_osc_amqbroker_config_dest_templates }}/amq-broker-secret.yml"
+# Secret for {{ ar_osc_amqinterconnect_name }} certificates
+  - name: {{ ar_osc_amqinterconnect_name }}-certs
+    namespace: "{{ ar_osc_amqinterconnect_ns }}"
+    template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-tls-secret.yml"
     action: apply
     tags:
-    - amqbroker
+    - amqic
 
-# Secret files for {{ ar_osc_amqbroker_name }} broker
-  - name: {{ ar_osc_amqbroker_name }}-broker-secret-files
-    namespace: "{{ ar_osc_amqbroker_ns }}"
-    template: "{{ _ar_osc_amqbroker_config_dest_templates }}/amq-broker-files-secret.yml"
+# Config Map for {{ ar_osc_amqinterconnect_name }}
+  - name: {{ ar_osc_amqinterconnect_name }}-config-map
+    namespace: "{{ ar_osc_amqinterconnect_ns }}"
+    template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-qdrouter-cm.yml"
     action: apply
     tags:
-    - amqbroker
+    - amqic
 
-# Broker Config Map for {{ ar_osc_amqbroker_name }}
-  - name: {{ ar_osc_amqbroker_name }}-broker-config-map
-    namespace: "{{ ar_osc_amqbroker_ns }}"
-    template: "{{ _ar_osc_amqbroker_config_dest_templates }}/amq-broker-cm.yml"
+# SASL Config Map for {{ ar_osc_amqinterconnect_name }}
+  - name: {{ ar_osc_amqinterconnect_name }}-sasl-config-map
+    namespace: "{{ ar_osc_amqinterconnect_ns }}"
+    template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd-cm.yml"
     action: apply
     tags:
-    - amqbroker
+    - amqic
 
-{% endif %}
+# Secret for {{ ar_osc_amqinterconnect_name }} user files
+  - name: {{ ar_osc_amqinterconnect_name }}-users
+    namespace: "{{ ar_osc_amqinterconnect_ns }}"
+    template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/users-secret.yml"
+    action: apply
+    tags:
+    - amqic
 
-# Application instances
-{% if ar_osc_amqbroker_instance.incomingAddressList | length > 0 %}
-# AMQ Broker instance for {{ ar_osc_amqbroker_name }}
-  - name: "{{ ar_osc_amqbroker_instance | broker_application_name }}"
-    namespace: "{{ ar_osc_amqbroker_ns }}"
-    template: "{{ _ar_osc_amqbroker_config_dest_templates }}/amq-broker-k8s-template.yml"
+# AMQ Interconnect instance for {{ ar_osc_amqinterconnect_name }}
+  - name: "{{ ar_osc_amqinterconnect_instance | ic_application_name }}"
+    namespace: "{{ ar_osc_amqinterconnect_ns }}"
+    template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml"
     action: apply
     params_from_vars:
-      APPLICATION_NAME: "{{ ar_osc_amqbroker_instance | broker_application_name }}"
-      AMQ_REQUIRE_LOGIN: true
-      AMQ_NAME: "{{ ar_osc_amqbroker_instance | broker_application_name }}"
-      BROKER_CONFIG_MAP: "{{ ar_osc_amqbroker_name }}-broker-config-map"
-      SECRET_FILES_NAME: "{{ ar_osc_amqbroker_name }}-broker-secret-files"
-{% if amqbroker_image is defined or 'amqbroker_image' in ar_osc_amqbroker_instance %}
-      IMAGE: {{ ar_osc_amqbroker_instance.amqbroker_image | default(amqbroker_image) }}
+      APPLICATION_NAME: "{{ ar_osc_amqinterconnect_instance | ic_application_name }}"
+      QDROUTERD_CONF_NAME: {{ ar_osc_amqinterconnect_name }}-config-map
+      QDROUTERD_CONF_HASH: "{{ lookup('file', _ar_osc_amqinterconnect_config_dest_templates + '/qpid-dispatch-router.conf') | hash('md5') }}"
+      SASL_CONF_NAME: {{ ar_osc_amqinterconnect_name }}-sasl-config-map
+      USERS_SECRET_FILES_NAME: {{ ar_osc_amqinterconnect_name }}-users
+      CERT_SECRET_NAME: {{ ar_osc_amqinterconnect_name }}-certs
+{% if amqic_image is defined or 'amqic_image' in ar_osc_amqinterconnect_instance %}
+      IMAGE_NAME: {{ ar_osc_amqinterconnect_instance.amqic_image | default(amqic_image) }}
 {% endif %}
-{% if amqbroker_image_ns is defined or 'amqbroker_image_ns' in ar_osc_amqbroker_instance %}
-      IMAGE_STREAM_NAMESPACE: {{ ar_osc_amqbroker_instance.amqbroker_image_ns | default(amqbroker_image_ns) }}
+{% if amqic_image_ns is defined or 'amqic_image_ns' in ar_osc_amqinterconnect_instance %}
+      IMAGE_STREAM_NAMESPACE: {{ ar_osc_amqinterconnect_instance.amqic_image_ns | default(amqic_image_ns) }}
 {% endif %}
-      APP_GROUP: "{{ ar_osc_amqbroker_name }}"
-      AMQ_SECRETS: "{{ ar_osc_amqbroker_instance.name | lower }}-broker-secrets"
-      AMQ_DATA_DIR: "{{ amqbroker_data_dir | default('/opt/amq/data') }}"
+      APP_GROUP: "{{ ar_osc_amqinterconnect_name }}"
     tags:
-    - amqbroker
+    - amqic
 
-{% if 'broker_node_port' in ar_osc_amqbroker_instance %}
-# Nodeport Service for {{ ar_osc_amqbroker_name }}-amq-broker
-  - name: "{{ ar_osc_amqbroker_instance | broker_application_name }}-np-svc"
-    namespace: "{{ ar_osc_amqbroker_ns }}"
-    template: "{{ _ar_osc_amqbroker_config_dest_templates }}/amq-broker-nodeport-service.yml"
-    action: apply
-    tags:
-    - amqbroker
-
-{% endif %}
-{% endif %}

@@ -2,13 +2,13 @@
 # Filter functions defining naming standard for AMQ and Interconnect instances
 #
 import re
-def app_var(ar_osc_amqinterconnect_instance, name, default):
-    if name in ar_osc_amqinterconnect_instance:
-        return ar_osc_amqinterconnect_instance[name]
+def app_var(app_instance, name, default):
+    if name in app_instance:
+        return app_instance[name]
     return default
 
-def app_common_name(ar_osc_amqinterconnect_instance):
-    return ar_osc_amqinterconnect_instance['name'].lower()
+def app_common_name(app_instance):
+    return app_instance['name'].lower()
 
 def app_namespace(app_instance, deployment_phase):
     if 'namespace' in app_instance:
@@ -30,6 +30,9 @@ def ic_application_name(app_instance):
     name = app_common_name(app_instance)
     return name + "-interconnect"
 
+def internal_broker_host(app_instance, deployment_phase):
+    return broker_application_name(app_instance) + "-amq-amqp." + app_namespace(app_instance, deployment_phase) + ".svc"
+
 
 class FilterModule(object):
     '''
@@ -38,9 +41,10 @@ class FilterModule(object):
 
     def filters(self):
         return {
-            'broker_application_name': broker_application_name,
+            'app_common_name': app_common_name,
             'app_namespace': app_namespace,
-            'app_common_name': app_common_name
+            'broker_application_name': broker_application_name,
+            'internal_broker_host': internal_broker_host,
         }
 
 '''

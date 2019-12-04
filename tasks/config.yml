@@ -1,4 +1,15 @@
 ---
+- name: Create template dirs
+  file:
+    path: "{{ _ar_osc_amqinterconnect_config_dest_templates }}"
+    state: directory
+
+- name: Copy common templates
+  include_role:
+    name: ar_osc_common_templates
+  vars:
+    ar_osc_common_templates_dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}"
+
 - name: Generate ir-qrouterd config
   template:
     src: qpid-dispatch-router.conf.j2
@@ -10,30 +21,31 @@
 - name: Generate qrouterd config map
   template:
     src: amq-interconnect-qdrouter-cm.yml.j2
-    dest: "{{ ar_osc_amqinterconnect_config_dest }}/amq-interconnect-qdrouter-cm.yml"
+    dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-qdrouter-cm.yml"
 
 - name: Generate application template
   template:
     src: amq-interconnect-basic-devel.yml.j2
-    dest: "{{ ar_osc_amqinterconnect_config_dest }}/amq-ic-k8s-template.yml"
+    dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml"
   when: ar_osc_amqinterconnect_instance.hostAliases is defined
 
 - name: Copy Interconnect template to working area
   copy:
     src: "{{ ar_osc_amqinterconnect_k8s_template }}"
-    dest: "{{ ar_osc_amqinterconnect_config_dest }}/amq-ic-k8s-template.yml"
+    dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml"
   when: ar_osc_amqinterconnect_instance.hostAliases is not defined
 
 - name: Generate the sasl config
   template:
     src: sasl-qdrouterd.conf.j2
-    dest: "{{ ar_osc_amqinterconnect_config_dest }}/sasl-qdrouterd.conf"
+    dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd.conf"
   tags:
     - secrets
 
 - name: Generate the sasl config map
   template:
     src: sasl-qdrouterd-cm.yml.j2
-    dest: "{{ ar_osc_amqinterconnect_config_dest }}/sasl-qdrouterd-cm.yml"
+    dest: "{{ _ar_osc_amqinterconnect_sasl_qdrouter_cm_file }}"
   tags:
     - secrets
+

@@ -20,6 +20,6 @@ objects:
       app: {{ ar_osc_amqinterconnect_common_name }}
   data:
     qdrouterd.conf: |-
-{% for line in lookup('file', ar_osc_amqinterconnect_config_dest + '/sasl-qdrouterd.conf').split('\n') %}
+{% for line in lookup('file', _ar_osc_amqinterconnect_sasl_qdrouter_conf_file).split('\n') %}
       {{ line }}
 {% endfor %}

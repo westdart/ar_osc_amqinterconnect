@@ -62,7 +62,7 @@ connector {
     host: {{ ar_osc_amqinterconnect_instance.meshIRAddr }}
     port: {{ ar_osc_amqinterconnect_instance.meshPort | default('443') }}
     role: inter-router
-    saslUsername: {{ ar_osc_amqinterconnect_ic_username }}@{{ ar_osc_amqinterconnect_instances | json_query(mesh_app_name_query) | first }}
+    saslUsername: {{ ar_osc_amqinterconnect_ic_username }}@{{ app_instances | json_query(mesh_app_name_query) | first }}
     saslPassword: {{ ar_osc_amqinterconnect_ic_password }}
     saslMechanisms: PLAIN
 {% if 'meshPort' not in ar_osc_amqinterconnect_instance %}
@@ -79,7 +79,7 @@ address {
 
 # autoLinks pulls messages from the broker into the Router and onto consumers
 {% set query = "[?name!=`" + ar_osc_amqinterconnect_instance.name + "`].incomingAddressList " %}
-{% for addr in ar_osc_amqinterconnect_instances | json_query(query) | flatten %}
+{% for addr in app_instances | json_query(query) | flatten %}
 autoLink {
     addr: {{ addr }}
     connection: LocalAMQBroker

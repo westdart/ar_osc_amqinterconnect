@@ -17,6 +17,8 @@ ar_osc_amqinterconnect_labels: [
 
 _ar_osc_amqinterconnect_app_type: 'amqinterconnect'
 _ar_osc_amqinterconnect_config_dest: "{{ ar_osc_amqinterconnect_config_dest }}/{{ _ar_osc_amqinterconnect_app_type }}"
-_ar_osc_amqinterconnect_config_dest_inventory: "{{ ar_osc_amqinterconnect_config_dest }}/inventory"
-_ar_osc_amqinterconnect_config_dest_templates: "{{ ar_osc_amqinterconnect_config_dest }}/templates"
-_ar_osc_amqinterconnect_qdrouter_conf_file: "{{ ar_osc_amqinterconnect_config_dest }}/qpid-dispatch-router.conf"
+_ar_osc_amqinterconnect_config_dest_inventory: "{{ _ar_osc_amqinterconnect_config_dest }}/inventory"
+_ar_osc_amqinterconnect_config_dest_templates: "{{ _ar_osc_amqinterconnect_config_dest }}/templates"
+_ar_osc_amqinterconnect_qdrouter_conf_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/qpid-dispatch-router.conf"
+_ar_osc_amqinterconnect_sasl_qdrouter_cm_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd-cm.yml"
+_ar_osc_amqinterconnect_sasl_qdrouter_conf_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd.conf"
