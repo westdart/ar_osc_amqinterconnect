@@ -1,24 +1,20 @@
-amq_ic_config
-==============
+# amq_ic_config
 
 Generate the config files required to build out amq_interconnect / amq broker nodes
 
-Requirements
-------------
+## Requirements
 
 
+## Role Variables
 
-Role Variables
---------------
-
-| Variable           | Description                                           | Default |
-| --------           | -----------                                           | ------- |
+| Variable                           | Description                                           | Default |
+| --------                           | -----------                                           | ------- |
 | ar_osc_amqinterconnect_instance    | Object defining the AMQ IC instance (see below)       | None    |
 | ar_osc_amqinterconnect_config_dest | Path to where generated config files are placed       | '/tmp'  |
-| deployment_phase   | Label denoting the phase (DEV, TEST etc)              | None    |
-| CA_CONTENT         | The content of the CA Certificate                     | None    |
-| CERT_CONTENT       | The content of the Application Certificate            | None    |
-| QD_ROUTER_CONFIG   | The content of the QPid Dispatch router configuration | None    |
+| deployment_phase                   | Label denoting the phase (DEV, TEST etc)              | None    |
+| CA_CONTENT                         | The content of the CA Certificate                     | None    |
+| CERT_CONTENT                       | The content of the Application Certificate            | None    |
+| QD_ROUTER_CONFIG                   | The content of the QPid Dispatch router configuration | None    |
 
 
 The 'ar_osc_amqinterconnect_instance' variable is an object that contains the details on each instance required.
@@ -36,23 +32,22 @@ The structure is:
 ```
 
 
-Default Variables
------------------ 
+## Default Variables
 
-| Variable                       | Description                          | Default                                                           |
-| --------                       | -----------                          | -------                                                           |
-| ar_osc_amqinterconnect_cert_mountpoint: | Where the cert files will be mounted | /etc/qpid-dispatch-certs                                          |
-| ar_osc_amqinterconnect_namespace:       | Openshift Namespace / Project        | {{ deployment_phase | lower }}-{{ ar_osc_amqinterconnect_instance.name | lower }} |
-| ar_osc_amqinterconnect_common_name:     | Application name                     | {{ ar_osc_amqinterconnect_instance.name | lower }}                                |
-
+| Variable                                | Description                          | Default                                 |                                                  |          |
+| --------                                | -----------                          | -------                                 |                                                  |          |
+| ar_osc_amqinterconnect_cert_mountpoint: | Where the cert files will be mounted | /etc/qpid-dispatch-certs                |                                                  |          |
+| ar_osc_amqinterconnect_namespace:       | Openshift Namespace / Project        | {{ deployment_phase                     | lower }}-{{ ar_osc_amqinterconnect_instance.name | lower }} |
+| ar_osc_amqinterconnect_common_name:     | Application name                     | {{ ar_osc_amqinterconnect_instance.name | lower }}                                         |          |
 
 
-Dependencies
-------------
+
+## Dependencies
+
+- openshift-applier
 
 
-Example Playbook
-----------------
+## Example Playbook
 
 ```
 - name: Setup AMQ Interconnect
@@ -77,12 +72,10 @@ Example Playbook
         }
 ```
 
-License
--------
+## License
 
 BSD
 
-Author Information
-------------------
+## Author Information
 
 dstewart@redhat.com
