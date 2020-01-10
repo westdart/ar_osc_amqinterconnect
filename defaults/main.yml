@@ -8,11 +8,11 @@ ar_osc_amqinterconnect_config_dest: '/tmp'
 ar_osc_amqinterconnect_sasldb_path: /opt/interconnect/etc/qdrouterd.sasldb
 
 ar_osc_amqinterconnect_labels: [
-  {"object": "DeploymentConfig", "name": "{{ ar_osc_amqinterconnect_instance | ic_application_name }}"},
+  {"object": "DeploymentConfig", "name": "{{ ar_osc_amqinterconnect_instance | application_name }}"},
   {"object": "Secret",           "name": "{{ ar_osc_amqinterconnect_name }}-certs"},
   {"object": "Secret",           "name": "{{ ar_osc_amqinterconnect_name }}-users"},
-  {"object": "ConfigMap",        "name": "{{ ar_osc_amqinterconnect_name }}-config-map"},
-  {"object": "ConfigMap",        "name": "{{ ar_osc_amqinterconnect_name }}-sasl-config-map"},
+  {"object": "ConfigMap",        "name": "{{ ar_osc_amqinterconnect_instance | config_map_name }}"},
+  {"object": "ConfigMap",        "name": "{{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}"},
 ]
 
 _ar_osc_amqinterconnect_app_type: 'amqinterconnect'

@@ -51,7 +51,7 @@ openshift_cluster_content:
     - amqic
 
 # Config Map for {{ ar_osc_amqinterconnect_name }}
-  - name: {{ ar_osc_amqinterconnect_name }}-config-map
+  - name: {{ ar_osc_amqinterconnect_instance | config_map_name }}
     namespace: "{{ ar_osc_amqinterconnect_ns }}"
     template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-qdrouter-cm.yml"
     action: apply
@@ -59,7 +59,7 @@ openshift_cluster_content:
     - amqic
 
 # SASL Config Map for {{ ar_osc_amqinterconnect_name }}
-  - name: {{ ar_osc_amqinterconnect_name }}-sasl-config-map
+  - name: {{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}
     namespace: "{{ ar_osc_amqinterconnect_ns }}"
     template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd-cm.yml"
     action: apply
@@ -75,15 +75,15 @@ openshift_cluster_content:
     - amqic
 
 # AMQ Interconnect instance for {{ ar_osc_amqinterconnect_name }}
-  - name: "{{ ar_osc_amqinterconnect_instance | ic_application_name }}"
+  - name: "{{ ar_osc_amqinterconnect_instance | application_name }}"
     namespace: "{{ ar_osc_amqinterconnect_ns }}"
     template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml"
     action: apply
     params_from_vars:
-      APPLICATION_NAME: "{{ ar_osc_amqinterconnect_instance | ic_application_name }}"
-      QDROUTERD_CONF_NAME: {{ ar_osc_amqinterconnect_name }}-config-map
+      APPLICATION_NAME: "{{ ar_osc_amqinterconnect_instance | application_name }}"
+      QDROUTERD_CONF_NAME: {{ ar_osc_amqinterconnect_instance | config_map_name }}
       QDROUTERD_CONF_HASH: "{{ lookup('file', _ar_osc_amqinterconnect_config_dest_templates + '/qpid-dispatch-router.conf') | hash('md5') }}"
-      SASL_CONF_NAME: {{ ar_osc_amqinterconnect_name }}-sasl-config-map
+      SASL_CONF_NAME: {{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}
       USERS_SECRET_FILES_NAME: {{ ar_osc_amqinterconnect_name }}-users
       CERT_SECRET_NAME: {{ ar_osc_amqinterconnect_name }}-certs
 {% if amqic_image is defined or 'amqic_image' in ar_osc_amqinterconnect_instance %}
@@ -93,6 +93,7 @@ openshift_cluster_content:
       IMAGE_STREAM_NAMESPACE: {{ ar_osc_amqinterconnect_instance.amqic_image_ns | default(amqic_image_ns) }}
 {% endif %}
       APP_GROUP: "{{ ar_osc_amqinterconnect_name }}"
+      APP_NAME: "{{ ar_osc_amqinterconnect_instance | application_name }}"
     tags:
     - amqic
 

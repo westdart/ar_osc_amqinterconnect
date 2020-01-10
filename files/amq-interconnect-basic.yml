@@ -4,6 +4,7 @@ labels:
   template: amq-interconnect-1-basic
   xpaas: 1.4.10
   appgroup: ${APP_GROUP}
+  app: ${APP_NAME}
 message: A new messaging service has been created in your project.
 metadata:
   annotations:
@@ -187,6 +188,10 @@ parameters:
 - description: Application Group Name
   displayName: Application Group Name
   name: APP_GROUP
+  required: true
+- description: App Name
+  displayName: App Name
+  name: APP_NAME
   required: true
 - description: Hash of the qdrouter config for change detection purposes
   displayName: QDRouter Config Hash

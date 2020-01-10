@@ -9,12 +9,12 @@ metadata:
     openshift.io/display-name: QDRouter Config Map
   labels:
     app: {{ ar_osc_amqinterconnect_common_name }}
-  name: {{ ar_osc_amqinterconnect_common_name }}-config-map
+  name: {{ ar_osc_amqinterconnect_instance | config_map_name }}
 objects:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
-    name: {{ ar_osc_amqinterconnect_common_name }}-config-map
+    name: {{ ar_osc_amqinterconnect_instance | config_map_name }}
     namespace: {{ ar_osc_amqinterconnect_namespace }}
     labels:
       app: {{ ar_osc_amqinterconnect_common_name }}
