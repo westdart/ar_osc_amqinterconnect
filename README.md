@@ -27,7 +27,6 @@ The structure is:
     external_host: "<amq interconnect route endpoint>",
     wayPointPatterns: [<list of wapoint patterns handled by this instance>],
     incomingAddressList: [<List of incomming addresses handled by this instance>],
-    sendToDLAOnNoRoute: '<whether to send no addressable messages to the dead letter queue (true|false)>'
   }
 ```
 
@@ -67,8 +66,7 @@ The structure is:
           internal_host: "amq-interconnect.dev-mesh.svc",
           external_host: "amq-interconnect-dev-mesh.a1.training.local",
           wayPointPatterns: ['mod.logistics.mjdi'],
-          incomingAddressList: ['mod.logistics.mjdi.MESH'],
-          sendToDLAOnNoRoute: 'true'
+          incomingAddressList: ['mod.logistics.mjdi.MESH']
         }
 ```
 
