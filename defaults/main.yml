@@ -1,6 +1,5 @@
 ---
 ar_osc_amqinterconnect_cert_mountpoint: "/etc/qpid-dispatch-certs"
-ar_osc_amqinterconnect_namespace: "{{ ar_osc_amqinterconnect_instance | app_namespace(deployment_phase) }}"
 ar_osc_amqinterconnect_common_name: "{{ ar_osc_amqinterconnect_instance.name | lower }}"
 
 ar_osc_amqinterconnect_k8s_template: "amq-interconnect-basic.yml"

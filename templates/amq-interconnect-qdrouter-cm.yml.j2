@@ -15,7 +15,7 @@ objects:
   kind: ConfigMap
   metadata:
     name: {{ ar_osc_amqinterconnect_instance | config_map_name }}
-    namespace: {{ ar_osc_amqinterconnect_namespace }}
+    namespace: {{ ar_osc_amqinterconnect_ns }}
     labels:
       app: {{ ar_osc_amqinterconnect_common_name }}
   data:

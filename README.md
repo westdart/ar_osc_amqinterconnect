@@ -36,7 +36,7 @@ The structure is:
 | Variable                                | Description                          | Default                                 |                                                  |          |
 | --------                                | -----------                          | -------                                 |                                                  |          |
 | ar_osc_amqinterconnect_cert_mountpoint: | Where the cert files will be mounted | /etc/qpid-dispatch-certs                |                                                  |          |
-| ar_osc_amqinterconnect_namespace:       | Openshift Namespace / Project        | {{ deployment_phase                     | lower }}-{{ ar_osc_amqinterconnect_instance.name | lower }} |
+| ar_osc_amqinterconnect_ns:              | Openshift Namespace / Project        | {{ deployment_phase                     | lower }}-{{ ar_osc_amqinterconnect_instance.name | lower }} |
 | ar_osc_amqinterconnect_common_name:     | Application name                     | {{ ar_osc_amqinterconnect_instance.name | lower }}                                         |          |
 
 
