@@ -10,8 +10,6 @@ openshift_cluster_content:
       NAMESPACE_DISPLAY_NAME: "{{ ar_osc_amqinterconnect_ns | upper }}"
     tags:
     - projects
-    - aspera
-    - amqbroker
     - amqic
 
 {% if ar_osc_amqinterconnect_instance.serviceaccounts is defined %}
@@ -29,8 +27,6 @@ openshift_cluster_content:
     tags:
     - projects
     - serviceaccounts
-    - aspera
-    - amqbroker
     - amqic
 {% endfor %}
     post_steps:
