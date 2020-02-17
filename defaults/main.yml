@@ -21,3 +21,24 @@ _ar_osc_amqinterconnect_config_dest_templates: "{{ _ar_osc_amqinterconnect_confi
 _ar_osc_amqinterconnect_qdrouter_conf_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/qpid-dispatch-router.conf"
 _ar_osc_amqinterconnect_sasl_qdrouter_cm_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd-cm.yml"
 _ar_osc_amqinterconnect_sasl_qdrouter_conf_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd.conf"
+
+_ar_osc_amqinterconnect_openshift_content: [
+  { name: "{{ ar_osc_amqinterconnect_name }}-certs",                      template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-tls-secret.yml" },
+  { name: "{{ ar_osc_amqinterconnect_instance | config_map_name }}",      template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-qdrouter-cm.yml" },
+  { name: "{{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}", template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd-cm.yml" },
+  { name: "{{ ar_osc_amqinterconnect_name }}-users",                      template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/users-secret.yml" },
+  { name: "{{ ar_osc_amqinterconnect_instance | application_name }}",     template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml",
+    params: {
+      APPLICATION_NAME: "{{ ar_osc_amqinterconnect_instance | application_name }}",
+      QDROUTERD_CONF_NAME: "{{ ar_osc_amqinterconnect_instance | config_map_name }}",
+      QDROUTERD_CONF_HASH: "{{ lookup('file', _ar_osc_amqinterconnect_config_dest_templates + '/qpid-dispatch-router.conf') | hash('md5') }}",
+      SASL_CONF_NAME: "{{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}",
+      USERS_SECRET_FILES_NAME: "{{ ar_osc_amqinterconnect_name }}-users",
+      CERT_SECRET_NAME: "{{ ar_osc_amqinterconnect_name }}-certs",
+      IMAGE_NAME: "{{ ar_osc_amqinterconnect_instance.amqic_image | default(amqic_image) }}",
+      IMAGE_STREAM_NAMESPACE: "{{ ar_osc_amqinterconnect_instance.amqic_image_ns | default(amqic_image_ns) }}",
+      APP_GROUP: "{{ ar_osc_amqinterconnect_name }}",
+      APP_NAME: "{{ ar_osc_amqinterconnect_instance | application_name }}"
+    }
+  }
+]
