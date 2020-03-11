@@ -72,8 +72,8 @@ The structure is:
 
 ## License
 
-BSD
+MIT / BSD
 
 ## Author Information
 
-dstewart@redhat.com
+This role was created in 2020 by David Stewart (dstewart@redhat.com)
