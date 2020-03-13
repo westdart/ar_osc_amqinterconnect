@@ -1,22 +1,20 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 labels:
-  template: amq-interconnect-sasl-auth
+  template: amq-interconnect-1-basic
   xpaas: 1.4.10
   appgroup: ${APP_GROUP}
   app: ${APP_NAME}
 message: A new messaging service has been created in your project.
 metadata:
   annotations:
-    description: Application template for Red Hat AMQ Interconnect Router with SASL
-      authentication. This template requires a secret containing a list of user names
-      and passwords against which clients will be authenticated, and a secret containing
-      the certificates and key required for inter-router authentication and encryption.
+    description: Application template for Red Hat AMQ Interconnect Router.
     iconClass: icon-amq
-    openshift.io/display-name: Red Hat AMQ Interconnect Router 1.x with SASL
+    openshift.io/display-name: Red Hat AMQ Interconnect Router 1.x
     openshift.io/provider-display-name: Red Hat, Inc.
     tags: messaging,amq
-  name: amq-interconnect-sasl-auth
+    version: 1.4.10
+  name: amq-interconnect-basic
 objects:
 - apiVersion: v1
   kind: Service
@@ -93,6 +91,16 @@ objects:
           deploymentConfig: ${APPLICATION_NAME}
         name: ${APPLICATION_NAME}
       spec:
+{% if 'hostAliases' in ar_osc_amqinterconnect_instance %}
+        hostAliases:
+{% for hostAlias in ar_osc_amqinterconnect_instance.hostAliases %}
+        - ip: "{{ hostAlias.ip }}"
+          hostnames:
+{% for hostname in hostAlias.hostnames %}
+          - "{{ hostname }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
         containers:
         - env:
           - name: APPLICATION_NAME
@@ -103,10 +111,6 @@ objects:
             value: ${QDROUTERD_CONF_HASH}
           - name: QDROUTERD_AUTO_MESH_DISCOVERY
             value: QUERY
-          - name: QDROUTERD_AUTO_CREATE_SASLDB_SOURCE
-            value: /etc/qpid-dispatch-users
-          - name: QDROUTERD_AUTO_CREATE_SASLDB_PATH
-            value: /opt/interconnect/etc/qdrouterd.sasldb
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
@@ -146,10 +150,6 @@ objects:
             readOnly: true
           - mountPath: /etc/qpid-dispatch/
             name: config-volume
-          - mountPath: /etc/sasl2/
-            name: sasl-config
-          - mountPath: /etc/qpid-dispatch-users
-            name: user-files
         terminationGracePeriodSeconds: 60
         volumes:
         - name: certs
@@ -158,26 +158,8 @@ objects:
         - name: config-volume
           configMap:
             name: ${QDROUTERD_CONF_NAME}
-        - name: sasl-config
-          configMap:
-            name: ${SASL_CONF_NAME}
-        - name: user-files
-          secret:
-            secretName: ${USERS_SECRET_FILES_NAME}
     triggers:
     - type: ConfigChange
-- apiVersion: v1
-  data:
-    qdrouterd.conf: |-
-      pwcheck_method: auxprop
-      auxprop_plugin: sasldb
-      sasldb_path: /opt/interconnect/etc/qdrouterd.sasldb
-      mech_list: SCRAM-SHA-1 DIGEST-MD5 PLAIN EXTERNAL
-  kind: ConfigMap
-  metadata:
-    labels:
-      application: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}-sasl-config
 parameters:
 - description: The name of the application.
   displayName: Application Name
@@ -200,17 +182,9 @@ parameters:
   displayName: QDRouter Config Map
   name: QDROUTERD_CONF_NAME
   required: true
-- description: SASL Config Map
-  displayName: SASL Config Map
-  name: SASL_CONF_NAME
-  value: ${APPLICATION_NAME}-sasl-config
 - description: TLS Certificate Files
   displayName: TLS Certificates
   name: CERT_SECRET_NAME
-  required: true
-- description: The name of the secret that contains the files with name/password
-  displayName: Secret for User Files
-  name: USERS_SECRET_FILES_NAME
   required: true
 - description: Application Group Name
   displayName: Application Group Name
