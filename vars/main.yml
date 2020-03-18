@@ -2,10 +2,10 @@
 ar_osc_amqinterconnect_ns: null
 ar_osc_amqinterconnect_name: null
 ar_osc_amqinterconnect_instance: null
-ar_osc_amqinterconnect_ca_cert: null
 ar_osc_amqinterconnect_ic_username: null
 ar_osc_amqinterconnect_ic_password: null
-ar_osc_amqinterconnect_domain: null
 ar_osc_amqinterconnect_broker_username: null
 ar_osc_amqinterconnect_broker_password: null
 ar_osc_amqinterconnect_tls_key: null
+ar_osc_amqinterconnect_cert_content: null
+ar_osc_amqinterconnect_ca_cert_content: null

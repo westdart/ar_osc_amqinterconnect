@@ -2,11 +2,14 @@
 ar_osc_amqinterconnect_cert_mountpoint: "/etc/qpid-dispatch-certs"
 ar_osc_amqinterconnect_common_name: "{{ ar_osc_amqinterconnect_instance.name | lower }}"
 
-ar_osc_amqinterconnect_k8s_template: "amq-interconnect-basic.yml"
+ar_osc_amqinterconnect_k8s_template: "{{ ar_osc_amqinterconnect_instance.amqic_template | default(amqic_template) | default('amq-interconnect-basic.yml') }}"
 ar_osc_amqinterconnect_config_dest: '/tmp'
-ar_osc_amqinterconnect_sasldb_path: /opt/interconnect/etc/qdrouterd.sasldb
 
-ar_osc_amqinterconnect_labels: [
+ar_osc_amqinterconnect_image: "{{ ar_osc_amqinterconnect_instance.amqic_image | default(amqic_image) }}"
+
+ar_osc_amqinterconnect_openshift_login_url: "{{ ar_osc_amqinterconnect_instance['oc_login_url'] | default(oc_login_url) }}"
+
+_ar_osc_amqinterconnect_labels: [
   {"object": "DeploymentConfig", "name": "{{ ar_osc_amqinterconnect_instance | application_name }}"},
   {"object": "Secret",           "name": "{{ ar_osc_amqinterconnect_name }}-certs"},
   {"object": "Secret",           "name": "{{ ar_osc_amqinterconnect_name }}-users"},
@@ -21,13 +24,18 @@ _ar_osc_amqinterconnect_config_dest_templates: "{{ _ar_osc_amqinterconnect_confi
 _ar_osc_amqinterconnect_qdrouter_conf_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/qpid-dispatch-router.conf"
 _ar_osc_amqinterconnect_sasl_qdrouter_cm_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd-cm.yml"
 _ar_osc_amqinterconnect_sasl_qdrouter_conf_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd.conf"
+_ar_osc_amqinterconnect_tls_secret_file:  "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-tls-secret.yml"
+_ar_osc_amqinterconnect_qdrouter_cm_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-qdrouter-cm.yml"
+_ar_osc_amqinterconnect_user_secret_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/users-secret.yml"
+_ar_osc_amqinterconnect_k8s_template_file: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml"
+_ar_osc_amqinterconnect_sasldb_path: /opt/interconnect/etc/qdrouterd.sasldb
 
 _ar_osc_amqinterconnect_openshift_content: [
-  { name: "{{ ar_osc_amqinterconnect_name }}-certs",                      template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-tls-secret.yml" },
-  { name: "{{ ar_osc_amqinterconnect_instance | config_map_name }}",      template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-qdrouter-cm.yml" },
-  { name: "{{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}", template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/sasl-qdrouterd-cm.yml" },
-  { name: "{{ ar_osc_amqinterconnect_name }}-users",                      template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/users-secret.yml" },
-  { name: "{{ ar_osc_amqinterconnect_instance | application_name }}",     template: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml",
+  { name: "{{ ar_osc_amqinterconnect_name }}-certs",                      template: "{{ _ar_osc_amqinterconnect_tls_secret_file }}" },
+  { name: "{{ ar_osc_amqinterconnect_instance | config_map_name }}",      template: "{{ _ar_osc_amqinterconnect_qdrouter_cm_file }}" },
+  { name: "{{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}", template: "{{ _ar_osc_amqinterconnect_sasl_qdrouter_cm_file }}" },
+  { name: "{{ ar_osc_amqinterconnect_name }}-users",                      template: "{{ _ar_osc_amqinterconnect_user_secret_file }}" },
+  { name: "{{ ar_osc_amqinterconnect_instance | application_name }}",     template: "{{ _ar_osc_amqinterconnect_k8s_template_file }}",
     params: {
       APPLICATION_NAME: "{{ ar_osc_amqinterconnect_instance | application_name }}",
       QDROUTERD_CONF_NAME: "{{ ar_osc_amqinterconnect_instance | config_map_name }}",
@@ -35,8 +43,7 @@ _ar_osc_amqinterconnect_openshift_content: [
       SASL_CONF_NAME: "{{ ar_osc_amqinterconnect_instance | sasl_config_map_name }}",
       USERS_SECRET_FILES_NAME: "{{ ar_osc_amqinterconnect_name }}-users",
       CERT_SECRET_NAME: "{{ ar_osc_amqinterconnect_name }}-certs",
-      IMAGE_NAME: "{{ ar_osc_amqinterconnect_instance.amqic_image | default(amqic_image) }}",
-      IMAGE_STREAM_NAMESPACE: "{{ ar_osc_amqinterconnect_instance.amqic_image_ns | default(amqic_image_ns) }}",
+      IMAGE_NAME: "{{ ar_osc_amqinterconnect_image }}",
       APP_GROUP: "{{ ar_osc_amqinterconnect_name }}",
       APP_NAME: "{{ ar_osc_amqinterconnect_instance | application_name }}"
     }

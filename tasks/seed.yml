@@ -7,4 +7,4 @@
     ar_os_seed_config_dest: "{{ _ar_osc_amqinterconnect_config_dest }}"
     ar_os_seed_namespace: "{{ ar_osc_amqinterconnect_ns }}"
     ar_os_seed_openshift_content: "{{ _ar_osc_amqinterconnect_openshift_content }}"
-    ar_os_seed_openshift_login_url: "{{ ar_osc_amqinterconnect_instance['oc_login_url'] | default(oc_login_url) }}"
+    ar_os_seed_openshift_login_url: "{{ ar_osc_amqinterconnect_openshift_login_url }}"

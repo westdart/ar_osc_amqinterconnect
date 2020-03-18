@@ -7,7 +7,7 @@
     target_object:    "{{ ar_osc_amqinterconnect_label.object }}"
     target_name:      "{{ ar_osc_amqinterconnect_label.name }}"
     target_namespace: "{{ ar_osc_amqinterconnect_instance | app_namespace(deployment_phase) }}"
-  with_items:         "{{ ar_osc_amqinterconnect_labels }}"
+  with_items:         "{{ _ar_osc_amqinterconnect_labels }}"
   loop_control:
     loop_var: ar_osc_amqinterconnect_label
 
@@ -19,6 +19,6 @@
     target_object:    "{{ ar_osc_amqinterconnect_label.object }}"
     target_name:      "{{ ar_osc_amqinterconnect_label.name }}"
     target_namespace: "{{ ar_osc_amqinterconnect_instance | app_namespace(deployment_phase) }}"
-  with_items:         "{{ ar_osc_amqinterconnect_labels }}"
+  with_items:         "{{ _ar_osc_amqinterconnect_labels }}"
   loop_control:
     loop_var: ar_osc_amqinterconnect_label

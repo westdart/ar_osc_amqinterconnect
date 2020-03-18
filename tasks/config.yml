@@ -16,24 +16,30 @@
     dest: "{{ _ar_osc_amqinterconnect_qdrouter_conf_file }}"
 
 - set_fact:
-    QD_ROUTER_CONFIG: "{{ lookup('file', _ar_osc_amqinterconnect_qdrouter_conf_file) }}"
+    _ar_osc_amqinterconnect_qdrouter_conf_content: "{{ lookup('file', _ar_osc_amqinterconnect_qdrouter_conf_file) }}"
 
 - name: Generate qrouterd config map
   template:
     src: amq-interconnect-qdrouter-cm.yml.j2
-    dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-interconnect-qdrouter-cm.yml"
+    dest: "{{ _ar_osc_amqinterconnect_qdrouter_cm_file }}"
 
 - name: Generate application template
   template:
-    src: amq-interconnect-basic-devel.yml.j2
-    dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml"
-  when: ar_osc_amqinterconnect_instance.hostAliases is defined
+    src: "{{ ar_osc_amqinterconnect_k8s_template }}"
+    dest: "{{ _ar_osc_amqinterconnect_k8s_template_file }}"
+  when: ar_osc_amqinterconnect_k8s_template is regex(".*\.j2$")
+
+- name: Generate application template (inferred)
+  template:
+    src: "{{ ar_osc_amqinterconnect_k8s_template }}.j2"
+    dest: "{{ _ar_osc_amqinterconnect_k8s_template_file }}"
+  when: ar_osc_amqinterconnect_instance.hostAliases is defined and ar_osc_amqinterconnect_k8s_template is not regex(".*\.j2$")
 
 - name: Copy Interconnect template to working area
   copy:
     src: "{{ ar_osc_amqinterconnect_k8s_template }}"
-    dest: "{{ _ar_osc_amqinterconnect_config_dest_templates }}/amq-ic-k8s-template.yml"
-  when: ar_osc_amqinterconnect_instance.hostAliases is not defined
+    dest: "{{ _ar_osc_amqinterconnect_k8s_template_file }}"
+  when: ar_osc_amqinterconnect_instance.hostAliases is not defined and ar_osc_amqinterconnect_k8s_template is not regex(".*\.j2$")
 
 - name: Generate the sasl config
   template:

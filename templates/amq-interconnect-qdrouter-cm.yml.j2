@@ -20,6 +20,6 @@ objects:
       app: {{ ar_osc_amqinterconnect_common_name }}
   data:
     qdrouterd.conf: |-
-{% for line in QD_ROUTER_CONFIG.split('\n') %}
+{% for line in _ar_osc_amqinterconnect_qdrouter_conf_content.split('\n') %}
       {{ line }}
 {% endfor %}
